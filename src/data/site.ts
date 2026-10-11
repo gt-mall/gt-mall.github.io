@@ -1,8 +1,20 @@
 export const site = {
   name: "GT-Shop",
+  title: "GT-Shop开源商城系统｜Go商城源码 · 小程序与H5 · AI辅助开发",
   repository: "https://github.com/gt-mall/gt-shop",
   description:
-    "面向 AI 的下一代开源商城。Go 后端、React 管理端与 UniApp 用户端，贯通商品、库存、订单、微信支付和售后。",
+    "GT-Shop 是面向 AI 二次开发的 Go 开源商城系统，基于 Go、React 与 UniApp，支持微信小程序和 H5，覆盖商品、SKU 库存、订单、微信支付、售后与经营分析。采用 Apache 2.0 协议，提供商城源码、部署文档与三端开发 Skills，支持独立部署和二次开发。",
+  keywords: [
+    "GT-Shop",
+    "GT-Mall",
+    "开源商城系统",
+    "Go商城",
+    "Go商城源码",
+    "小程序商城",
+    "H5商城",
+    "电商系统源码",
+    "AI辅助开发",
+  ],
 };
 export const withBase = (path = "") =>
   `${import.meta.env.BASE_URL.replace(/\/$/, "")}/${path.replace(/^\//, "")}`;

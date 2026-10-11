@@ -3,7 +3,14 @@ import BaseLayout from "./BaseLayout.astro";
 import Icon from "@/components/common/Icon.astro";
 import { docPages, sourceLink, withBase } from "@/data/site";
 interface Props {
-  frontmatter: { title: string; description: string; source?: string };
+  frontmatter: {
+    title: string;
+    description: string;
+    seoTitle?: string;
+    seoDescription?: string;
+    keywords?: string[];
+    source?: string;
+  };
 }
 const { frontmatter } = Astro.props;
 const current = docPages.findIndex((page) =>
@@ -14,8 +21,14 @@ const next = docPages[current + 1];
 ---
 
 <BaseLayout
-  title={`${frontmatter.title} | GT-Shop 开发文档`}
-  description={frontmatter.description}
+  title={frontmatter.seoTitle ?? `${frontmatter.title} | GT-Shop 开发文档`}
+  description={frontmatter.seoDescription ?? frontmatter.description}
+  keywords={frontmatter.keywords}
+  breadcrumbs={[
+    { name: "首页", path: withBase() },
+    { name: "开发文档", path: withBase("docs/") },
+    { name: frontmatter.title, path: Astro.url.pathname },
+  ]}
 >
   <main id="main-content" class="container docs-layout">
     <aside class="docs-sidebar">

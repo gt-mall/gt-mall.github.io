@@ -2,15 +2,19 @@
 import "@/styles/global.css";
 import Header from "@/components/common/Header.astro";
 import Footer from "@/components/common/Footer.astro";
-import { site, withBase } from "@/data/site";
+import { site, sourceLink, withBase } from "@/data/site";
 interface Props {
   title?: string;
   description?: string;
+  keywords?: string[];
+  breadcrumbs?: { name: string; path: string }[];
   noindex?: boolean;
 }
 const {
-  title = "GT-Shop · 面向 AI 的下一代开源商城",
+  title = site.title,
   description = site.description,
+  keywords = site.keywords,
+  breadcrumbs = [],
   noindex = false,
 } = Astro.props;
 const canonical = Astro.site
@@ -18,6 +22,69 @@ const canonical = Astro.site
   : undefined;
 const socialImage = Astro.site
   ? new URL(withBase("images/gt-shop-hero.png"), Astro.site).href
+  : undefined;
+const homeUrl = Astro.site ? new URL(withBase(), Astro.site).href : undefined;
+const isHome = canonical === homeUrl;
+const structuredData =
+  canonical && homeUrl && !noindex
+    ? {
+        "@context": "https://schema.org",
+        "@graph": [
+          ...(isHome
+            ? [
+                {
+                  "@type": "WebSite",
+                  "@id": `${homeUrl}#website`,
+                  name: site.name,
+                  alternateName: "GT-Shop 开源商城",
+                  url: homeUrl,
+                  description: site.description,
+                  inLanguage: "zh-CN",
+                },
+                {
+                  "@type": "SoftwareSourceCode",
+                  "@id": `${homeUrl}#source`,
+                  name: "GT-Shop 开源商城系统",
+                  description: site.description,
+                  codeRepository: site.repository,
+                  url: site.repository,
+                  programmingLanguage: ["Go", "TypeScript", "JavaScript"],
+                  license: sourceLink("LICENSE"),
+                },
+              ]
+            : []),
+          {
+            "@type": "WebPage",
+            "@id": `${canonical}#webpage`,
+            url: canonical,
+            name: title,
+            description,
+            inLanguage: "zh-CN",
+            isPartOf: { "@id": `${homeUrl}#website` },
+            ...(isHome ? { about: { "@id": `${homeUrl}#source` } } : {}),
+            ...(breadcrumbs.length
+              ? { breadcrumb: { "@id": `${canonical}#breadcrumb` } }
+              : {}),
+          },
+          ...(breadcrumbs.length
+            ? [
+                {
+                  "@type": "BreadcrumbList",
+                  "@id": `${canonical}#breadcrumb`,
+                  itemListElement: breadcrumbs.map((item, index) => ({
+                    "@type": "ListItem",
+                    position: index + 1,
+                    name: item.name,
+                    item: new URL(item.path, homeUrl).href,
+                  })),
+                },
+              ]
+            : []),
+        ],
+      }
+    : undefined;
+const structuredDataJson = structuredData
+  ? JSON.stringify(structuredData).replace(/</g, "\\u003c")
   : undefined;
 ---
 
@@ -28,11 +95,23 @@ const socialImage = Astro.site
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="icon" type="image/svg+xml" href={withBase("favicon.svg")} />
     <meta name="generator" content={Astro.generator} />
+    <title>{title}</title>
     <meta name="description" content={description} />
+    <meta name="keywords" content={[...new Set(keywords)].join(",")} />
+    <meta name="author" content="GT-Mall 开源项目" />
+    <meta name="application-name" content={site.name} />
+    <meta
+      name="robots"
+      content={
+        noindex
+          ? "noindex, follow"
+          : "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1"
+      }
+    />
     <meta name="theme-color" content="#2563eb" />
     <meta property="og:type" content="website" />
     <meta property="og:locale" content="zh_CN" />
-    <meta property="og:site_name" content="GT-Shop" />
+    <meta property="og:site_name" content={site.name} />
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
     {canonical && (
@@ -41,9 +120,33 @@ const socialImage = Astro.site
         <meta property="og:url" content={canonical} />
       </>
     )}
-    {socialImage && <meta property="og:image" content={socialImage} />}
-    {noindex && <meta name="robots" content="noindex" />}
-    <title>{title}</title>
+    {socialImage && (
+      <>
+        <meta property="og:image" content={socialImage} />
+        <meta property="og:image:type" content="image/png" />
+        <meta property="og:image:width" content="2160" />
+        <meta property="og:image:height" content="728" />
+        <meta
+          property="og:image:alt"
+          content="GT-Shop 开源商城系统：Go 商城源码、微信小程序与 H5"
+        />
+      </>
+    )}
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    {socialImage && (
+      <>
+        <meta name="twitter:image" content={socialImage} />
+        <meta
+          name="twitter:image:alt"
+          content="GT-Shop 开源商城系统：Go 商城源码、微信小程序与 H5"
+        />
+      </>
+    )}
+    {structuredDataJson && (
+      <script type="application/ld+json" set:html={structuredDataJson} />
+    )}
   </head>
   <body>
     <a href="#main-content" class="skip-link">

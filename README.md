@@ -47,6 +47,12 @@ public/
 
 编辑商品等功能文案时修改 `src/data/site.ts`；编辑正文时修改 `src/pages/docs/*.mdx`。说明应与商城源码一致，不将开发中的能力写成已上线功能。
 
+## SEO 头信息
+
+首页标题、描述与关键词集中在 `src/data/site.ts`。文档页通过 MDX frontmatter 的 `seoTitle`、`seoDescription` 与 `keywords` 独立配置，不改变正文标题与简介。
+
+公共布局统一输出 canonical、robots、Open Graph 与 Twitter 分享信息。正式域名配置后，首页提供 `WebSite`、`WebPage` 与 `SoftwareSourceCode` JSON-LD，文档页提供页面及面包屑结构化数据；404 保持 `noindex`。没有正式域名时，不生成猜测的 canonical、分享图片 URL 或 JSON-LD。
+
 ## 配置正式域名
 
 构建时设置你自己的域名，以生成 canonical、Open Graph 图片 URL 和完整 sitemap：

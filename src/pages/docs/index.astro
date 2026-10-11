@@ -5,8 +5,20 @@ import { docPages, sourceLink, withBase } from "@/data/site";
 ---
 
 <BaseLayout
-  title="开发者文档 | GT-Shop"
-  description="GT-Shop 快速开始、构建部署、项目架构和 AI 辅助二次开发指南。"
+  title="GT-Shop开发文档｜开源商城安装、部署与二次开发教程"
+  description="GT-Shop 开源商城官方开发文档，提供 Go 后端、React 管理端、UniApp 小程序与 H5 的安装启动、Linux 部署、技术架构、API 契约和 AI Skills 二次开发指南。"
+  keywords={[
+    "GT-Shop",
+    "开源商城文档",
+    "Go商城教程",
+    "商城安装",
+    "商城部署",
+    "商城二次开发",
+  ]}
+  breadcrumbs={[
+    { name: "首页", path: withBase() },
+    { name: "开发文档", path: withBase("docs/") },
+  ]}
 >
   <main id="main-content" class="container docs-hub">
     <span class="eyebrow">GT-SHOP HANDBOOK</span>
