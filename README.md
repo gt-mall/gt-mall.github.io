@@ -68,7 +68,20 @@ WEBSITE_URL=https://your-domain.example pnpm build
 3. 将工作流、`package.json` 与本说明提交并推送到 `main`。
 4. 在 [Actions](https://github.com/gt-mall/website/actions) 查看 **Deploy to GitHub Pages**，等待构建和发布成功。
 
-发布后的地址为 **https://gt-mall.github.io/website/**。工作流已设置 `WEBSITE_URL=https://gt-mall.github.io`、`WEBSITE_BASE=/website/`，以正确生成图片、文档链接与 SEO 地址。
+工作流根据组织与仓库名自动选择发布路径：
+
+- 仓库名为 `website`：发布到 **https://gt-mall.github.io/website/**，base 为 `/website/`。
+- 仓库名为 `gt-mall.github.io`：发布到 **https://gt-mall.github.io/**，base 为 `/`。
+
+如果希望直接访问组织主页根地址，在仓库 **Settings → General → Repository name** 将 `website` 改名为 `gt-mall.github.io`，并确认 **Settings → Pages → Source** 为 **GitHub Actions**。GitHub 要求组织主页使用 `<组织名>.github.io` 仓库；只修改 base 不能把普通项目站点发布到根地址。
+
+改名后更新本地远程地址，然后将当前工作流修改提交、推送到 `main`：
+
+```bash
+git remote set-url origin https://github.com/gt-mall/gt-mall.github.io.git
+```
+
+工作流会自动识别新仓库名，正确生成根路径的图片、文档链接与 SEO 地址。
 
 之后每次推送 `main` 都会更新网站，也可以进入该工作流点击 **Run workflow** 手动发布。构建产物上传为 `github-pages` Artifact，无需额外配置服务器或个人访问令牌。
 
@@ -76,12 +89,18 @@ WEBSITE_URL=https://your-domain.example pnpm build
 
 如果以后绑定独立域名，在 Pages 设置中配置域名，并同步修改工作流的 `WEBSITE_URL` 为该域名、`WEBSITE_BASE` 为 `/`，然后重新发布。
 
-## 本地验证 GitHub Pages 子路径
+## 本地验证 GitHub Pages 路径
 
 如果发布到仓库子路径，同时设置正式地址与 base：
 
 ```bash
 WEBSITE_URL=https://gt-mall.github.io WEBSITE_BASE=/website/ pnpm build
+```
+
+组织主页使用根路径：
+
+```bash
+WEBSITE_URL=https://gt-mall.github.io WEBSITE_BASE=/ pnpm build
 ```
 
 将 `dist/` 作为 Pages 部署产物。所有站内链接和图片通过 `withBase()` 生成，适配子路径。新的页面或资源链接也应使用这个辅助方法。
