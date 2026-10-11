@@ -63,12 +63,12 @@ WEBSITE_URL=https://your-domain.example pnpm build
 
 首次启用：
 
-1. 打开 [仓库 Settings → Pages](https://github.com/gt-mall/website/settings/pages)。
+1. 打开 [仓库 Settings → Pages](https://github.com/gt-mall/gt-mall.github.io/settings/pages)。
 2. 在 **Build and deployment → Source** 选择 **GitHub Actions**。
 3. 将工作流、`package.json` 与本说明提交并推送到 `main`。
-4. 在 [Actions](https://github.com/gt-mall/website/actions) 查看 **Deploy to GitHub Pages**，等待构建和发布成功。
+4. 在 [Actions](https://github.com/gt-mall/gt-mall.github.io/actions) 查看 **Deploy to GitHub Pages**，等待构建和发布成功。
 
-工作流根据组织与仓库名自动选择发布路径：
+工作流通过 `actions/configure-pages` 读取 GitHub Pages 的实际配置，将 `origin` 用作 `WEBSITE_URL`、`base_path` 用作 `WEBSITE_BASE`；根路径为空时使用 `/`。不从旧运行的事件数据猜测路径，绑定独立域名时也会使用当前配置。
 
 - 仓库名为 `website`：发布到 **https://gt-mall.github.io/website/**，base 为 `/website/`。
 - 仓库名为 `gt-mall.github.io`：发布到 **https://gt-mall.github.io/**，base 为 `/`。
@@ -81,13 +81,13 @@ WEBSITE_URL=https://your-domain.example pnpm build
 git remote set-url origin https://github.com/gt-mall/gt-mall.github.io.git
 ```
 
-工作流会自动识别新仓库名，正确生成根路径的图片、文档链接与 SEO 地址。
+仓库改名后，必须通过一次新推送或 **Run workflow** 完整重新构建。不要仅重跑旧运行中失败的发布任务：旧 Artifact 可能仍引用 `/website/`，根目录下的 CSS、脚本和图片就会加载失败。
 
 之后每次推送 `main` 都会更新网站，也可以进入该工作流点击 **Run workflow** 手动发布。构建产物上传为 `github-pages` Artifact，无需额外配置服务器或个人访问令牌。
 
 如果构建成功而发布失败，先检查 Pages Source 是否选为 GitHub Actions，以及 `github-pages` 环境是否要求人工审批。远程 Actions 成功和实际页面访问仍需在首次推送后确认。
 
-如果以后绑定独立域名，在 Pages 设置中配置域名，并同步修改工作流的 `WEBSITE_URL` 为该域名、`WEBSITE_BASE` 为 `/`，然后重新发布。
+如果以后绑定独立域名，在 Pages 设置中配置域名与 DNS，然后通过 **Run workflow** 完整重新构建发布，工作流会读取新的域名和根路径。
 
 ## 本地验证 GitHub Pages 路径
 
