@@ -57,12 +57,31 @@ WEBSITE_URL=https://your-domain.example pnpm build
 
 `your-domain.example` 是占位符。将 `dist/` 上传到对应静态服务器；这里的构建不会上传或部署到任何服务器。
 
-## GitHub Pages 子路径
+## GitHub Pages 自动发布
+
+仓库已提供 `.github/workflows/deploy-pages.yml`，推送到 `main` 会自动安装依赖、执行类型检查、构建并发布。使用 Node.js 24 与 `package.json` 指定的 pnpm 10.24.0；锁文件决定依赖版本。
+
+首次启用：
+
+1. 打开 [仓库 Settings → Pages](https://github.com/gt-mall/website/settings/pages)。
+2. 在 **Build and deployment → Source** 选择 **GitHub Actions**。
+3. 将工作流、`package.json` 与本说明提交并推送到 `main`。
+4. 在 [Actions](https://github.com/gt-mall/website/actions) 查看 **Deploy to GitHub Pages**，等待构建和发布成功。
+
+发布后的地址为 **https://gt-mall.github.io/website/**。工作流已设置 `WEBSITE_URL=https://gt-mall.github.io`、`WEBSITE_BASE=/website/`，以正确生成图片、文档链接与 SEO 地址。
+
+之后每次推送 `main` 都会更新网站，也可以进入该工作流点击 **Run workflow** 手动发布。构建产物上传为 `github-pages` Artifact，无需额外配置服务器或个人访问令牌。
+
+如果构建成功而发布失败，先检查 Pages Source 是否选为 GitHub Actions，以及 `github-pages` 环境是否要求人工审批。远程 Actions 成功和实际页面访问仍需在首次推送后确认。
+
+如果以后绑定独立域名，在 Pages 设置中配置域名，并同步修改工作流的 `WEBSITE_URL` 为该域名、`WEBSITE_BASE` 为 `/`，然后重新发布。
+
+## 本地验证 GitHub Pages 子路径
 
 如果发布到仓库子路径，同时设置正式地址与 base：
 
 ```bash
-WEBSITE_URL=https://your-name.github.io WEBSITE_BASE=/your-repo/ pnpm build
+WEBSITE_URL=https://gt-mall.github.io WEBSITE_BASE=/website/ pnpm build
 ```
 
 将 `dist/` 作为 Pages 部署产物。所有站内链接和图片通过 `withBase()` 生成，适配子路径。新的页面或资源链接也应使用这个辅助方法。
