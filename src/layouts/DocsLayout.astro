@@ -1,0 +1,94 @@
+---
+import BaseLayout from "./BaseLayout.astro";
+import Icon from "@/components/common/Icon.astro";
+import { docPages, sourceLink, withBase } from "@/data/site";
+interface Props {
+  frontmatter: { title: string; description: string; source?: string };
+}
+const { frontmatter } = Astro.props;
+const current = docPages.findIndex((page) =>
+  Astro.url.pathname.replace(/\/$/, "").endsWith(`/docs/${page.slug}`),
+);
+const previous = docPages[current - 1];
+const next = docPages[current + 1];
+---
+
+<BaseLayout
+  title={`${frontmatter.title} | GT-Shop 开发文档`}
+  description={frontmatter.description}
+>
+  <main id="main-content" class="container docs-layout">
+    <aside class="docs-sidebar">
+      <a href={withBase("docs/")} class="docs-sidebar-heading">
+        <Icon name="book" size={19} /> 开发者文档
+      </a>
+      <span class="micro-label">GET STARTED</span>
+      <nav aria-label="文档导航">
+        {docPages.map((page, index) => (
+          <a
+            href={withBase(`docs/${page.slug}/`)}
+            class:list={[{ active: current === index }]}
+            aria-current={current === index ? "page" : undefined}
+          >
+            <Icon name={page.icon} size={17} />
+            {page.title}
+          </a>
+        ))}
+      </nav>
+      <div class="sidebar-note">
+        <strong>代码是最好的参考。</strong>
+        <p>文档结合仓库整理，部署前请核对当前分支的配置与脚本。</p>
+        <a
+          href={sourceLink(frontmatter.source ?? "README.md")}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          查看仓库原文 <Icon name="external" size={14} />
+        </a>
+      </div>
+    </aside>
+    <div class="docs-content">
+      <div class="breadcrumb">
+        <a href={withBase()}>首页</a>
+        <span>/</span>
+        <a href={withBase("docs/")}>文档</a>
+        <span>/</span>
+        <span>{frontmatter.title}</span>
+      </div>
+      <div class="docs-title">
+        <span class="eyebrow">GT-SHOP HANDBOOK</span>
+        <h1>{frontmatter.title}</h1>
+        <p>{frontmatter.description}</p>
+      </div>
+      <article class="prose">
+        <slot />
+      </article>
+      <nav class="doc-pagination" aria-label="文档翻页">
+        {previous ? (
+          <a href={withBase(`docs/${previous.slug}/`)}>
+            <small>← 上一篇</small>
+            <strong>{previous.title}</strong>
+          </a>
+        ) : (
+          <span></span>
+        )}
+        {next && (
+          <a href={withBase(`docs/${next.slug}/`)}>
+            <small>下一篇 →</small>
+            <strong>{next.title}</strong>
+          </a>
+        )}
+      </nav>
+      <div class="docs-feedback">
+        <span>发现文档问题？欢迎帮助我们改进。</span>
+        <a
+          href="https://github.com/gt-mall/gt-shop/issues"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          提交反馈 <Icon name="external" size={14} />
+        </a>
+      </div>
+    </div>
+  </main>
+</BaseLayout>

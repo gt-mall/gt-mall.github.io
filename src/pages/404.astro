@@ -1,0 +1,20 @@
+---
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import { withBase } from "@/data/site";
+---
+
+<BaseLayout title="页面未找到 | GT-Shop" noindex>
+  <main id="main-content" class="container not-found">
+    <span class="eyebrow">404 / PAGE NOT FOUND</span>
+    <h1>这条路，还没有页面。</h1>
+    <p>链接可能已更新，回到首页或文档继续探索 GT-Shop。</p>
+    <div>
+      <a class="button button-primary" href={withBase()}>
+        返回首页 →
+      </a>
+      <a class="button button-outline" href={withBase("docs/")}>
+        浏览文档
+      </a>
+    </div>
+  </main>
+</BaseLayout>

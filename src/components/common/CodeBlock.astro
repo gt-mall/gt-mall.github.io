@@ -1,0 +1,49 @@
+---
+import Icon from "./Icon.astro";
+interface Props {
+  code: string;
+  label?: string;
+}
+const { code, label = "终端" } = Astro.props;
+---
+
+<div class="code-block">
+  <div class="code-block-heading">
+    <span>
+      <Icon name="terminal" size={15} />
+      {label}
+    </span>
+    <button type="button" class="copy-button" aria-label={`复制${label}代码`}>
+      <Icon name="copy" size={14} />
+      <span aria-live="polite">复制</span>
+    </button>
+  </div>
+  <pre tabindex="0"><code>{code}</code></pre>
+</div>
+<script>
+  document
+    .querySelectorAll<HTMLButtonElement>(".copy-button")
+    .forEach((button) => {
+      button.addEventListener("click", async () => {
+        const code = button
+          .closest(".code-block")
+          ?.querySelector("code")?.textContent;
+        const label = button.querySelector("span");
+        if (!code || !label) return;
+        if (!navigator.clipboard) {
+          label.textContent = "请手动选择复制";
+          return;
+        }
+        button.disabled = true;
+        const [result] = await Promise.allSettled([
+          navigator.clipboard.writeText(code),
+        ]);
+        label.textContent =
+          result.status === "fulfilled" ? "已复制" : "请手动选择复制";
+        window.setTimeout(() => {
+          label.textContent = "复制";
+          button.disabled = false;
+        }, 2500);
+      });
+    });
+</script>

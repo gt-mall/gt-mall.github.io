@@ -1,0 +1,114 @@
+---
+layout: ../../layouts/DocsLayout.astro
+title: 二次开发
+description: 从一个具体需求开始，沿 API 契约修改三端代码，让 AI 协作和验证都有清楚的规则。
+source: docs/api-contract.md
+---
+
+import CodeBlock from "../../components/common/CodeBlock.astro";
+import { sourceLink } from "../../data/site";
+
+## 先找到需求所属的业务
+
+从页面入口沿着 API、Service 和数据模型阅读代码，再确定改动范围。复用现有模块、请求层和权限机制，保持一条清楚的业务路径。
+
+例如“给商品列表增加品牌筛选”，需要一起核对后端查询 DTO、Swagger、生成的 Client 和前端筛选表单。
+
+## API 契约从后端生成
+
+后端 Go DTO、Struct、路由和 Swagger 注解是接口定义来源。不要在前端手工维护另一份同义 DTO，也不要直接修改生成文件。
+
+```text
+Go DTO / 路由 / Swagger 注解
+            ↓
+admin-server/docs/ 与 docs-miniapp/
+            ↓
+管理端生成 Client / 用户端 API 薄封装
+            ↓
+页面调用与类型检查
+```
+
+在仓库根目录运行生成命令：
+
+<CodeBlock
+  label="重新生成 API"
+  code={`bash scripts/3_generate_api.sh
+bash sw.sh`}
+/>
+
+生成工具的依赖与行为以当前脚本为准。管理端 Client 位于 `admin-web/src/framework/http/generated_api.ts`；用户端 API 薄封装位于 `miniapp/src/api/`，以小程序 Swagger 为契约。
+
+统一响应中的 `code === 1` 表示成功，`code === 0` 表示业务失败，`code === -1` 表示登录失效或需要重新登录。页面应复用公共请求与会话能力。
+
+## 用 Skills 帮助 AI 理解项目
+
+仓库提供三份入口规范：
+
+- <a
+    href={sourceLink(".agents/skills/admin-server/SKILL.md")}
+    target="_blank"
+    rel="noopener noreferrer"
+  >
+    Go 后端 Skill
+  </a>
+  ：业务模块、金额精度、接口、迁移与测试。
+- <a
+    href={sourceLink(".agents/skills/admin-web/SKILL.md")}
+    target="_blank"
+    rel="noopener noreferrer"
+  >
+    React 管理端 Skill
+  </a>
+  ：UI、HTTP、权限与 API Client。
+- <a
+    href={sourceLink(".agents/skills/miniapp/SKILL.md")}
+    target="_blank"
+    rel="noopener noreferrer"
+  >
+    UniApp 用户端 Skill
+  </a>
+  ：页面、会话、交易与跨端行为。
+
+使用支持 Skills 的编码助手时，让它先读取命中的规范及相关参考文档。自然语言需求也应说明业务规则、改动边界与验收条件。
+
+> 示例需求：“给商品列表增加品牌筛选，复用现有字典和列表组件，同步后端 DTO、Swagger 和生成 Client；保持分页与权限行为，完成相关构建和筛选验证。”
+
+Skills 提供协作规则，开发者仍需审核需求、代码与验证结果。仓库中的历史说明也应与当前实现交叉核对。
+
+## 守住业务细节
+
+- 金额保持十进制精度，复用金额工具，避免浮点计算。
+- 价格、库存、运费与交易状态以后端结果为准。
+- 复用请求 ID 与重复提交保护，不制造第二套交易状态。
+- 权限贯穿页面与后端接口，隐藏按钮不替代服务端校验。
+- 数据库变化新增递增 Migration，不修改已发布的迁移。
+- 网络、登录与错误处理复用现有公共能力，避免页面重复封装。
+
+## 验证修改
+
+按改动涉及的端执行构建与测试：
+
+<CodeBlock
+  label="Go 后端"
+  code={`cd admin-server
+go test ./test/...
+go test ./...`}
+/>
+
+<CodeBlock
+  label="管理端 · 仓库根目录"
+  code={`pnpm --dir admin-web run test
+pnpm --dir admin-web run build`}
+/>
+
+<CodeBlock
+  label="用户端 · 仓库根目录"
+  code={`pnpm --dir miniapp run type-check
+pnpm --dir miniapp run test
+pnpm --dir miniapp run build:h5
+pnpm --dir miniapp run build:mp-weixin`}
+/>
+
+涉及 MySQL 行锁或并发库存时，使用独立测试数据库验证。微信登录、支付、退款和真机交互需要对应平台环境；仅构建通过不能证明外部链路通过。
+
+提交前运行 `git diff --check`，在 Pull Request 中说明行为变化、验证结果和未完成的检查。更多约定见 <a href={sourceLink('docs/api-contract.md')} target="\_blank" rel="noopener noreferrer">API 契约原文</a>。

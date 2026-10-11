@@ -1,0 +1,73 @@
+---
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import Icon from "@/components/common/Icon.astro";
+import { docPages, sourceLink, withBase } from "@/data/site";
+---
+
+<BaseLayout
+  title="开发者文档 | GT-Shop"
+  description="GT-Shop 快速开始、构建部署、项目架构和 AI 辅助二次开发指南。"
+>
+  <main id="main-content" class="container docs-hub">
+    <span class="eyebrow">GT-SHOP HANDBOOK</span>
+    <h1>
+      从认识项目，
+      <br />
+      到运行你的商城。
+    </h1>
+    <p class="hub-intro">
+      环境配置、业务架构与开发规范，
+      <br />
+      为每一步提供清楚的参考。
+    </p>
+    <div class="docs-card-grid">
+      {docPages.map((page, index) => (
+        <a class="doc-card" href={withBase(`docs/${page.slug}/`)}>
+          <div>
+            <Icon name={page.icon} size={28} />
+            <span>0{index + 1}</span>
+          </div>
+          <h2>{page.title}</h2>
+          <p>{page.description}</p>
+          <span class="doc-card-link">
+            阅读指南 <Icon name="arrow" size={17} />
+          </span>
+        </a>
+      ))}
+    </div>
+    <div class="hub-resources">
+      <h2>更多仓库资料</h2>
+      <p>这些专题文档直接维护在 GT-Shop 仓库中。</p>
+      <div>
+        <a
+          href={sourceLink("docs/wechat-payment-setup.md")}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          微信支付接入指南 <Icon name="external" size={16} />
+        </a>
+        <a
+          href={sourceLink("docs/miniapp/wechat-test-account.md")}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          微信小程序测试与登录 <Icon name="external" size={16} />
+        </a>
+        <a
+          href={sourceLink("docs/api-contract.md")}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          API 契约约定 <Icon name="external" size={16} />
+        </a>
+        <a
+          href={sourceLink("LICENSE")}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Apache License 2.0 <Icon name="external" size={16} />
+        </a>
+      </div>
+    </div>
+  </main>
+</BaseLayout>

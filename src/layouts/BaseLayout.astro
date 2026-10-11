@@ -1,0 +1,56 @@
+---
+import "@/styles/global.css";
+import Header from "@/components/common/Header.astro";
+import Footer from "@/components/common/Footer.astro";
+import { site, withBase } from "@/data/site";
+interface Props {
+  title?: string;
+  description?: string;
+  noindex?: boolean;
+}
+const {
+  title = "GT-Shop · 面向 AI 的下一代开源商城",
+  description = site.description,
+  noindex = false,
+} = Astro.props;
+const canonical = Astro.site
+  ? new URL(Astro.url.pathname, Astro.site).href
+  : undefined;
+const socialImage = Astro.site
+  ? new URL(withBase("images/gt-shop-hero.png"), Astro.site).href
+  : undefined;
+---
+
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/svg+xml" href={withBase("favicon.svg")} />
+    <meta name="generator" content={Astro.generator} />
+    <meta name="description" content={description} />
+    <meta name="theme-color" content="#2563eb" />
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="zh_CN" />
+    <meta property="og:site_name" content="GT-Shop" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    {canonical && (
+      <>
+        <link rel="canonical" href={canonical} />
+        <meta property="og:url" content={canonical} />
+      </>
+    )}
+    {socialImage && <meta property="og:image" content={socialImage} />}
+    {noindex && <meta name="robots" content="noindex" />}
+    <title>{title}</title>
+  </head>
+  <body>
+    <a href="#main-content" class="skip-link">
+      跳转到主要内容
+    </a>
+    <Header />
+    <slot />
+    <Footer />
+  </body>
+</html>

@@ -1,0 +1,83 @@
+---
+import Logo from "./Logo.astro";
+import Icon from "./Icon.astro";
+import { site, withBase } from "@/data/site";
+const isDocs = Astro.url.pathname.includes("/docs");
+const links = [
+  { label: "功能特性", href: `${withBase()}#features` },
+  { label: "产品一览", href: `${withBase()}#showcase` },
+  { label: "AI 与开发", href: `${withBase()}#ai` },
+  { label: "开发文档", href: withBase("docs/"), active: isDocs },
+];
+---
+
+<header class="site-header">
+  <div class="container header-inner">
+    <a href={withBase()} class="brand" aria-label="GT-Shop 首页">
+      <Logo />
+    </a>
+    <nav class="desktop-nav" aria-label="主导航">
+      {links.map((link) => (
+        <a
+          href={link.href}
+          class:list={[{ active: link.active }]}
+          aria-current={link.active ? "location" : undefined}
+        >
+          {link.label}
+        </a>
+      ))}
+    </nav>
+    <div class="header-actions">
+      <a
+        href={site.repository}
+        class="github-link"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        <Icon name="github" size={18} />
+        <span>GitHub</span>
+        <Icon name="external" size={13} />
+      </a>
+      <a
+        href={withBase("docs/quick-start/")}
+        class="button button-small button-primary header-start"
+      >
+        开始使用 <Icon name="arrow" size={16} />
+      </a>
+      <details class="mobile-menu">
+        <summary aria-label="打开导航菜单">
+          <span></span>
+          <span></span>
+          <span></span>
+        </summary>
+        <nav aria-label="移动端导航">
+          {links.map((link) => (
+            <a href={link.href}>{link.label}</a>
+          ))}
+          <a href={withBase("docs/quick-start/")}>
+            开始使用 <Icon name="arrow" size={16} />
+          </a>
+        </nav>
+      </details>
+    </div>
+  </div>
+</header>
+<script>
+  const mobileMenu = document.querySelector<HTMLDetailsElement>(".mobile-menu");
+  mobileMenu?.querySelectorAll("a").forEach((link) =>
+    link.addEventListener("click", () => {
+      mobileMenu.open = false;
+    }),
+  );
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && mobileMenu) mobileMenu.open = false;
+  });
+  document.addEventListener("click", (event) => {
+    if (
+      mobileMenu &&
+      event.target instanceof Node &&
+      !mobileMenu.contains(event.target)
+    )
+      mobileMenu.open = false;
+  });
+</script>

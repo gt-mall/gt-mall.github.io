@@ -1,0 +1,106 @@
+---
+layout: ../../layouts/DocsLayout.astro
+title: 构建与部署
+description: 将管理端嵌入 Go 服务，部署到 Linux 服务器，并配置自己的用户端与支付环境。
+source: scripts/DEPLOY.md
+---
+
+import CodeBlock from "../../components/common/CodeBlock.astro";
+import { sourceLink, withBase } from "../../data/site";
+
+## 部署前准备
+
+先按 <a href={withBase('docs/quick-start/')}>快速开始</a> 确认本地环境可运行。服务器需要 MySQL、SSH 和 Linux 运行环境；公网访问通常还需要域名、HTTPS 与反向代理。
+
+管理端静态页面可以直接嵌入 Go 程序，也可独立交给 Nginx。H5 和微信小程序分别构建、发布。
+
+## 本地构建管理端与后端
+
+<CodeBlock
+  label="仓库根目录"
+  code={`pnpm --dir admin-web install --frozen-lockfile
+bash scripts/2_build_all.sh --admin-only`}
+/>
+
+主要产物：
+
+| 路径                      | 内容                     |
+| ------------------------- | ------------------------ |
+| `release/run/mall_server` | 包含管理端页面的 Go 程序 |
+| `release/run/static/`     | 独立管理端静态文件       |
+| `release/run/restart.sh`  | 服务器重启与日志查看脚本 |
+
+`--admin-only` 不构建用户端，也不复制本地 `.env`。无参数执行构建脚本还会构建 H5 和微信小程序；生产配置应在服务器单独维护。
+
+修改管理端后，需要重新编译 Go，才能更新程序中的内嵌页面。
+
+## 通过 SSH 上传
+
+仓库的部署脚本支持覆盖 SSH 目标和部署目录。请显式填入自己的服务器配置：
+
+<CodeBlock
+  label="SSH 部署示例"
+  code="SSH_TARGET=your-ssh-alias DEPLOY_DIR=/opt/gt-shop/run bash scripts/5_deploy.sh"
+/>
+
+脚本会识别服务器 Linux amd64 / arm64，构建管理端、交叉编译后端、上传并解压产物。首次连接的指纹确认、密码或私钥口令在交互终端输入。
+
+> 脚本不自动重启服务，不上传本地 `.env`、数据库或 uploads，也不初始化服务器数据库。`your-ssh-alias` 是占位符；不传参数时仓库脚本使用作者自己的默认 SSH 配置。
+
+完整行为见 <a href={sourceLink('scripts/DEPLOY.md')} target="\_blank" rel="noopener noreferrer">仓库部署说明</a>。
+
+## 配置服务器运行环境
+
+把自己的 `.env` 放在部署目录，参照 `admin-server/.env.example` 设置数据库连接、端口、时区与认证密钥。管理端默认由 `8100` 端口提供；如设置 `APP_PORT`，同步修改反向代理。
+
+全新数据库需要执行初始化并创建管理员。编译后的程序提供相同命令，先进入部署目录，再执行：
+
+<CodeBlock
+  label="仅用于全新空库"
+  code={`./mall_server init
+read -r -p '管理员用户名: ' ADMIN_USERNAME
+read -r -s -p '管理员密码: ' ADMIN_PASSWORD
+printf '\n'
+export ADMIN_USERNAME ADMIN_PASSWORD
+./mall_server create-admin
+unset ADMIN_USERNAME ADMIN_PASSWORD`}
+/>
+
+确保进程有权限读写上传目录。长期运行建议使用 systemd 等现有服务管理器，设置正确的工作目录与开机启动。
+
+仓库也提供 `restart.sh`：在部署目录执行 `bash restart.sh` 会停止旧的 `mall_server` 进程并用 `nohup` 启动新进程，随后跟踪日志。`Ctrl+C` 退出日志查看，服务继续运行；这个脚本本身不提供开机启动。
+
+## 构建用户端
+
+<CodeBlock
+  label="用户端构建"
+  code={`pnpm --dir miniapp install --frozen-lockfile
+pnpm --dir miniapp run build:h5
+pnpm --dir miniapp run build:mp-weixin`}
+/>
+
+- H5 产物位于 `miniapp/dist/build/h5`，部署到你的静态服务器。
+- 微信小程序产物位于 `miniapp/dist/build/mp-weixin`，通过微信开发者工具上传。
+- 发布前核对 AppID、生产 API 地址以及微信平台的合法域名配置。H5 开发代理不是生产环境的接口配置。
+
+## 接入微信支付
+
+当前接入普通商户的小程序支付。需要准备：
+
+1. 已与商户绑定的小程序 AppID、AppSecret。
+2. 商户号、API 证书序列号与商户私钥。
+3. 微信支付公钥 ID、公钥 PEM 与 32 字节 APIv3 密钥。
+4. 通过 `openssl rand -base64 32` 生成的 `PAYMENT_CONFIG_KEY`，在所有后端实例中保持一致并备份。
+5. 可被微信访问的 HTTPS 支付和退款回调地址。
+
+支付回调路径为 `/api/miniapp/payments/wechat/notify`，退款回调路径为 `/api/miniapp/payments/wechat/refund-notify`。用你自己的域名配置，不要直接沿用仓库示例域名。
+
+详细步骤见 <a href={sourceLink('docs/wechat-payment-setup.md')} target="\_blank" rel="noopener noreferrer">微信小程序正式支付接入</a>。上线前完成真机付款、关单与退款验证；支付和退款的最终状态以服务端确认结果为准。
+
+## 更新与检查
+
+- 更新前备份数据库、`.env` 与上传目录。
+- 保留支付配置加密密钥，避免已有配置无法解密。
+- 使用递增 Migration 更新结构，不修改已经发布的迁移。
+- 重启后检查 `/health`、管理员登录、用户端访问和关键交易流程。
+- 关注后台任务的失败摘要与待确认支付、退款积压。

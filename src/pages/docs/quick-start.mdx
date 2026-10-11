@@ -1,0 +1,117 @@
+---
+layout: ../../layouts/DocsLayout.astro
+title: 快速开始
+description: 准备开发环境，初始化数据库，启动 Go 后端、运营管理端和 H5 用户端。
+source: scripts/init_db.sh
+---
+
+import CodeBlock from "../../components/common/CodeBlock.astro";
+import { sourceLink, withBase } from "../../data/site";
+
+## 1. 准备环境
+
+这份指南用于本地开发。先准备下列工具，并确保 MySQL 已启动：
+
+| 工具                            | 用途                                 |
+| ------------------------------- | ------------------------------------ |
+| Go 1.25 或兼容的更新版本        | 以 `admin-server/go.mod` 为准        |
+| Node.js 22 LTS 或兼容的更新版本 | 运行前端构建工具                     |
+| pnpm 10                         | 安装管理端与用户端依赖               |
+| MySQL 8.4                       | 保存业务数据，库存方案以此版本为目标 |
+| Git                             | 获取项目源码                         |
+| Redis（可选）                   | 商品缓存，示例配置默认关闭           |
+
+## 2. 获取源码
+
+<CodeBlock
+  label="终端"
+  code={`git clone https://github.com/gt-mall/gt-shop.git
+cd gt-shop
+pnpm --dir admin-web install --frozen-lockfile
+pnpm --dir miniapp install --frozen-lockfile
+cd admin-server
+go mod download
+cd ..`}
+/>
+
+仓库包含 `admin-server/`（Go 后端）、`admin-web/`（React 管理端）与 `miniapp/`（UniApp 用户端）。后续未特别说明的命令，都从仓库根目录执行。
+
+## 3. 配置 MySQL 与后端
+
+用你的数据库管理工具创建一个**全新的空数据库**，名称可设为 `mall`，字符集使用 `utf8mb4`。为它准备可执行迁移的数据库账号。
+
+<CodeBlock
+  label="复制配置"
+  code="cp admin-server/.env.example admin-server/.env"
+/>
+
+编辑 `admin-server/.env`，将下列示例替换为自己的值：
+
+```dotenv
+APP_PORT=8100
+APP_TIMEZONE="Asia/Shanghai"
+DATABASE_DSN="mall_user:YOUR_PASSWORD@tcp(127.0.0.1:3306)/mall?charset=utf8mb4&parseTime=True&loc=Asia%2FShanghai"
+AUTH_JWT_SECRET=YOUR_LONG_RANDOM_SECRET
+REDIS_ENABLED=false
+```
+
+`YOUR_PASSWORD` 和 `YOUR_LONG_RANDOM_SECRET` 都是占位符。不要直接使用示例密码；`.env` 不应提交到 Git。全部配置项见 <a href={sourceLink('admin-server/.env.example')} target="\_blank" rel="noopener noreferrer">后端环境配置示例</a>。
+
+## 4. 初始化与创建管理员
+
+对刚创建的空数据库执行迁移与基础 Seed：
+
+<CodeBlock label="初始化空数据库" code="bash scripts/init_db.sh init" />
+
+创建首个超级管理员。以下使用 Bash 交互输入，密码长度需为 6–72 字节；建议使用足够长的随机密码：
+
+<CodeBlock
+  label="创建管理员"
+  code={`read -r -p '管理员用户名: ' ADMIN_USERNAME
+read -r -s -p '管理员密码: ' ADMIN_PASSWORD
+printf '\n'
+export ADMIN_USERNAME ADMIN_PASSWORD
+bash scripts/init_db.sh create-admin
+unset ADMIN_USERNAME ADMIN_PASSWORD`}
+/>
+
+> 初始化 Seed 不会提供可公开复用的默认管理员密码。已有数据库的后续更新应执行增量迁移，不要用 `align` 重置版本记录。
+
+## 5. 启动后端与管理端
+
+打开第一个终端，启动 API 服务：
+
+<CodeBlock
+  label="终端 A · 后端"
+  code={`cd admin-server
+go run .`}
+/>
+
+在第二个终端启动管理端：
+
+<CodeBlock label="终端 B · 管理端" code="pnpm --dir admin-web run start" />
+
+访问 `http://localhost:6100`，使用刚创建的管理员登录。开发服务器默认将 `/api` 等请求代理到 `http://localhost:8100`；如果后端地址不同，请在 `admin-web/.env.local` 设置 `VITE_BACKEND_URL`。
+
+<CodeBlock label="检查后端" code="curl http://localhost:8100/health" />
+
+> 仅 `go run .` 且没有构建管理端时，后端根路径可能返回 404，这是因为内嵌页面尚未生成。本地开发应访问管理端的 `6100` 端口。
+
+## 6. 启动 H5 用户端
+
+小程序工程的开发代理默认地址可能与本机不同，启动时显式指定你的后端：
+
+<CodeBlock
+  label="终端 C · H5"
+  code="VITE_API_BASE_URL=http://127.0.0.1:8100 pnpm --dir miniapp run dev:h5"
+/>
+
+访问 `http://localhost:5100`。这是 H5 开发入口；微信小程序登录、付款等平台能力需在微信开发者工具或真机中验证。
+
+## 7. 微信小程序开发
+
+<CodeBlock label="微信小程序编译" code="pnpm --dir miniapp run dev:mp-weixin" />
+
+将生成的 `miniapp/dist/dev/mp-weixin` 导入微信开发者工具，配置自己的 AppID，并按环境设置后端 API 地址。登录、合法域名和支付配置可参考 <a href={sourceLink('docs/miniapp/wechat-test-account.md')} target="\_blank" rel="noopener noreferrer">微信小程序测试指南</a> 与 <a href={sourceLink('docs/wechat-payment-setup.md')} target="\_blank" rel="noopener noreferrer">支付接入指南</a>。
+
+准备发布时，继续阅读 <a href={withBase('docs/deployment/')}>构建与部署</a>。

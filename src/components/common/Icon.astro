@@ -1,0 +1,69 @@
+---
+interface Props {
+  name: string;
+  size?: number;
+  class?: string;
+}
+const { name, size = 24, class: className } = Astro.props;
+const paths: Record<string, string[]> = {
+  arrow: ["M5 12h14", "m13 6 6 6-6 6"],
+  external: [
+    "M14 3h7v7",
+    "M10 14 21 3",
+    "M21 14v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5",
+  ],
+  github: [
+    "M9 19c-4.3 1.3-4.3-2.5-6-3m12 6v-3.9a3.4 3.4 0 0 0-1-2.6c3.3-.4 6.8-1.6 6.8-7.4a5.8 5.8 0 0 0-1.6-4 5.4 5.4 0 0 0-.1-4s-1.3-.4-4.1 1.5a14 14 0 0 0-7.5 0C4.7-.3 3.4.1 3.4.1a5.4 5.4 0 0 0-.1 4 5.8 5.8 0 0 0-1.6 4c0 5.8 3.5 7 6.8 7.4a3.4 3.4 0 0 0-1 2.6V22",
+  ],
+  box: ["m12 3 9 5v9l-9 5-9-5V8z", "m3 8 9 5 9-5", "M12 13v9", "m7.5 5.5 9 5"],
+  receipt: ["M6 3h12v18l-3-2-3 2-3-2-3 2z", "M9 7h6M9 11h6M9 15h3"],
+  chart: ["M3 3v18h18", "M7 16v-4M12 16V8M17 16V5"],
+  bolt: ["m13 2-9 12h7l-1 8 10-12h-7z"],
+  shield: ["m12 3 9 4v5c0 5-9 10-9 10S3 17 3 12V7z", "m8 12 3 3 5-6"],
+  phone: [
+    "M7 2h10a2 2 0 0 1 2 2v16a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2",
+    "M10 5h4M11 19h2",
+  ],
+  code: ["m8 6-6 6 6 6", "m16 6 6 6-6 6", "m14 3-4 18"],
+  layers: ["m12 3 10 5-10 5L2 8z", "m2 12 10 5 10-5", "m2 16 10 5 10-5"],
+  server: [
+    "M5 3h14a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2",
+    "M5 13h14a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4a2 2 0 0 1 2-2",
+    "M7 7h.01M7 17h.01M11 7h6M11 17h6",
+  ],
+  rocket: [
+    "M12 14 9 11s1-7 12-8c-1 11-8 12-8 12z",
+    "m9 11-4-1-3 5 6 1",
+    "m13 15 1 4 5-3-1-5",
+    "M6 18c-2 0-3 3-3 3s3-1 3-3",
+  ],
+  sparkles: [
+    "m12 3 2.5 6.5L21 12l-6.5 2.5L12 21l-2.5-6.5L3 12l6.5-2.5z",
+    "M21 3v4M19 5h4",
+  ],
+  check: ["m5 12 4 4L19 6"],
+  book: [
+    "M12 5v16",
+    "M12 5C9 3 6 3 2 4v16c4-1 7-1 10 1 3-2 6-2 10-1V4c-4-1-7-1-10 1",
+  ],
+  copy: ["M9 9h11v11H9z", "M5 15H3V3h12v2"],
+  terminal: ["m4 6 6 6-6 6", "M13 18h7"],
+};
+---
+
+<svg
+  width={size}
+  height={size}
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.65"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+  class={className}
+  aria-hidden="true"
+>
+  {(paths[name] ?? paths.code).map((d) => (
+    <path d={d} />
+  ))}
+</svg>

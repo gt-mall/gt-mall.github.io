@@ -1,0 +1,73 @@
+---
+import Logo from "./Logo.astro";
+import Icon from "./Icon.astro";
+import { docPages, site, sourceLink, withBase } from "@/data/site";
+const year = new Intl.DateTimeFormat("en", {
+  year: "numeric",
+  timeZone: "Asia/Shanghai",
+}).format(new Date());
+---
+
+<footer class="site-footer">
+  <div class="container footer-main">
+    <div class="footer-brand">
+      <a class="brand" href={withBase()} aria-label="GT-Shop 首页">
+        <Logo />
+      </a>
+      <p>
+        让好的商城想法，拥有扎实的起点。
+        <br />
+        开放源码，认真打磨每一笔交易。
+      </p>
+      <a
+        class="footer-repo"
+        href={site.repository}
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        <Icon name="github" size={17} /> gt-mall / gt-shop{" "}
+        <Icon name="external" size={13} />
+      </a>
+    </div>
+    <div>
+      <h2>认识 GT-Shop</h2>
+      <a href={`${withBase()}#features`}>功能特性</a>
+      <a href={`${withBase()}#showcase`}>产品一览</a>
+      <a href={`${withBase()}#ai`}>AI 与开发</a>
+      <a href={withBase("docs/architecture/")}>技术架构</a>
+    </div>
+    <div>
+      <h2>开发者文档</h2>
+      {docPages.map((page) => (
+        <a href={withBase(`docs/${page.slug}/`)}>{page.title}</a>
+      ))}
+    </div>
+    <div>
+      <h2>参与开源</h2>
+      <a href={site.repository} target="_blank" rel="noopener noreferrer">
+        查看源码 ↗
+      </a>
+      <a
+        href={`${site.repository}/issues`}
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        问题与建议 ↗
+      </a>
+      <a
+        href={`${site.repository}/pulls`}
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        贡献代码 ↗
+      </a>
+      <a href={sourceLink("LICENSE")} target="_blank" rel="noopener noreferrer">
+        Apache License 2.0 ↗
+      </a>
+    </div>
+  </div>
+  <div class="container footer-bottom">
+    <span>© {year} GT-Shop · GT-Mall 开源项目</span>
+    <span>Built with Go. Made for commerce.</span>
+  </div>
+</footer>
